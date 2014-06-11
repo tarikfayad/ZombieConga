@@ -8,6 +8,40 @@
 
 #import "tf_MyScene.h"
 
+static inline CGPoint CGPointAdd(const CGPoint a,
+                                 const CGPoint b)
+{
+    return CGPointMake(a.x + b.x, a.y + b.y);
+}
+
+static inline CGPoint CGPointSubtract(const CGPoint a,
+                                      const CGPoint b)
+{
+    return CGPointMake(a.x - b.x, a.y - b.y);
+}
+
+static inline CGPoint CGPointMultiplyScalar(const CGPoint a,
+                                            const CGFloat b)
+{
+    return CGPointMake(a.x * b, a.y * b);
+}
+
+static inline CGFloat CGPointLength(const CGPoint a)
+{
+    return sqrtf(a.x * a.x + a.y * a.y);
+}
+
+static inline CGPoint CGPointNormalize(const CGPoint a)
+{
+    CGFloat length = CGPointLength(a);
+    return CGPointMake(a.x / length, a.y / length);
+}
+
+static inline CGFloat CGPointToAngle(const CGPoint a)
+{
+    return atan2f(a.y, a.x);
+}
+
 static const float ZOMBIE_MOVE_POINTS_PER_SEC = 120.0; //The zombie should move 120 points (about 1/5th of the screen) every second
 
 @implementation tf_MyScene
@@ -15,6 +49,7 @@ static const float ZOMBIE_MOVE_POINTS_PER_SEC = 120.0; //The zombie should move 
     SKSpriteNode *_zombie;
     
     CGPoint _velocity;
+    CGPoint _lastTouchLocation;
     
     NSTimeInterval _lastUpdateTime;
     NSTimeInterval _dt;
@@ -31,39 +66,42 @@ static const float ZOMBIE_MOVE_POINTS_PER_SEC = 120.0; //The zombie should move 
     _lastUpdateTime = currentTime;
     NSLog(@"%0.2f milliseconds since last update", _dt * 1000);
     
-    //Calling movement methods
-    //_zombie.position = CGPointMake(_zombie.position.x + 2, _zombie.position.y); //Constant fixed movment per frame
-    //[self moveSprite:_zombie veloocity:CGPointMake(ZOMBIE_MOVE_POINTS_PER_SEC, 0)]; //Velocity multiplied by delta time (dt)
-    [self moveSprite:_zombie veloocity:_velocity];
+    CGPoint offsetBetweenZombieAndTouch = CGPointSubtract(_zombie.position, _lastTouchLocation);
+    if (CGPointLength(offsetBetweenZombieAndTouch) <= (ZOMBIE_MOVE_POINTS_PER_SEC * _dt)) {
+        _zombie.position = _lastTouchLocation;
+        _velocity = CGPointZero;
+    } else {
+        [self moveSprite:_zombie velocity:_velocity];
+        
+        //Calling the Bounds Functionwhy a tar and not a zip
+        [self boundsCheckPlayer];
+        [self rotateSprite:_zombie toFace:_velocity];
+    }
     
-    //Calling the Bounds Function
-    [self boundsCheckPlayer];
 }
 
 //Velocity multiplied by delta time (dt)
--(void) moveSprite: (SKSpriteNode *) sprite veloocity: (CGPoint) velocity
+-(void) moveSprite: (SKSpriteNode *) sprite velocity: (CGPoint) velocity
 {
     //Since velocity is in points per second, you need to figure out how much to move the zombie in each frame, which is done by multiplying by the fraction of seconds since last update
-    CGPoint amountToMove = CGPointMake(velocity.x * _dt, velocity.y * _dt);
+    CGPoint amountToMove = CGPointMultiplyScalar(velocity, _dt);
     NSLog(@"Amount to move: %@", NSStringFromCGPoint(amountToMove));
     
     //To determine the new position for the zombie, just add the vector to the point
-    sprite.position = CGPointMake(sprite.position.x + amountToMove.x, sprite.position.y + amountToMove.y);
+    sprite.position = CGPointAdd (sprite.position, amountToMove);
+
 }
 
 //Make the zombie move the direction of a tap.
 - (void)moveZombieToward:(CGPoint)location
 {
     //Calculating the offset vector between the touch location and the zombie's location
-    CGPoint offset = CGPointMake(location.x - _zombie.position.y, location.y - _zombie.position.y);
-    
-    //Calculating the offset vector length
-    CGFloat length = sqrtf(offset.x * offset.x + offset.y * offset.y);
+    CGPoint offset = CGPointSubtract (location, _zombie.position);
     
     //Normalizing the offset vector length to ensure steady movment
-    CGPoint direction = CGPointMake(offset.x / length, offset.y / length);
+    CGPoint direction = CGPointNormalize(offset);
     
-    _velocity = CGPointMake(direction.x * ZOMBIE_MOVE_POINTS_PER_SEC, direction.y * ZOMBIE_MOVE_POINTS_PER_SEC);
+    _velocity = CGPointMultiplyScalar(direction, ZOMBIE_MOVE_POINTS_PER_SEC);
     
 }
 
@@ -96,22 +134,22 @@ static const float ZOMBIE_MOVE_POINTS_PER_SEC = 120.0; //The zombie should move 
 - (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     UITouch *touch = [touches anyObject];
-    CGPoint touchLocation = [touch locationInNode:self];
-    [self moveZombieToward:touchLocation];
+    _lastTouchLocation = [touch locationInNode:self];
+    [self moveZombieToward:_lastTouchLocation];
 }
 
 - (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
     UITouch *touch = [touches anyObject];
-    CGPoint touchLocation = [touch locationInNode:self];
-    [self moveZombieToward:touchLocation];
+    _lastTouchLocation = [touch locationInNode:self];
+    [self moveZombieToward:_lastTouchLocation];
 }
 
 - (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     UITouch *touch = [touches anyObject];
-    CGPoint touchLocation = [touch locationInNode:self];
-    [self moveZombieToward:touchLocation];
+    _lastTouchLocation = [touch locationInNode:self];
+    [self moveZombieToward:_lastTouchLocation];
 }
 
 - (void) boundsCheckPlayer
@@ -145,6 +183,12 @@ static const float ZOMBIE_MOVE_POINTS_PER_SEC = 120.0; //The zombie should move 
     //Setting the zombie to the new position
     _zombie.position = newPosition;
     _velocity = newVelocity;
+}
+
+//Rotate the zombie to face in the direction pointed
+- (void) rotateSprite:(SKSpriteNode *)sprite toFace:(CGPoint)direction
+{
+    sprite.zRotation = CGPointToAngle(direction);
 }
 
 @end

@@ -12,5 +12,6 @@
 
 - (void) moveSprite: (SKSpriteNode *) sprite veloocity: (CGPoint) velocity;
 - (void) moveZombieToward: (CGPoint) location;
+- (void) boundsCheckPlayer;
 
 @end

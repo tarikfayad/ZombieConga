@@ -33,7 +33,8 @@ static const float ZOMBIE_MOVE_POINTS_PER_SEC = 120.0; //The zombie should move 
     
     //Calling movement methods
     //_zombie.position = CGPointMake(_zombie.position.x + 2, _zombie.position.y); //Constant fixed movment per frame
-    [self moveSprite:_zombie veloocity:CGPointMake(ZOMBIE_MOVE_POINTS_PER_SEC, 0)]; //Velocity multiplied by delta time (dt)
+    //[self moveSprite:_zombie veloocity:CGPointMake(ZOMBIE_MOVE_POINTS_PER_SEC, 0)]; //Velocity multiplied by delta time (dt)
+    [self moveSprite:_zombie veloocity:_velocity];
 }
 
 //Velocity multiplied by delta time (dt)
@@ -86,6 +87,57 @@ static const float ZOMBIE_MOVE_POINTS_PER_SEC = 120.0; //The zombie should move 
     }
     
     return self;
+}
+
+//Logging touch events in three methods
+- (void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    UITouch *touch = [touches anyObject];
+    CGPoint touchLocation = [touch locationInNode:self];
+    [self moveZombieToward:touchLocation];
+}
+
+- (void) touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    UITouch *touch = [touches anyObject];
+    CGPoint touchLocation = [touch locationInNode:self];
+    [self moveZombieToward:touchLocation];
+}
+
+- (void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    UITouch *touch = [touches anyObject];
+    CGPoint touchLocation = [touch locationInNode:self];
+    [self moveZombieToward:touchLocation];
+}
+
+- (void) boundsCheckPlayer
+{
+    //Storing the position and velocity
+    CGPoint newPosition = _zombie.position;
+    CGPoint newVelocity = _velocity;
+    
+    //Getting the bottom left and top right coordinates
+    CGPoint bottomLeft = CGPointZero;
+    CGPoint topRight = CGPointMake(self.size.width, self.size.height);
+    
+    //Establishing the boundaries
+    if (newPosition.x <= bottomLeft.x) {
+        newPosition.x = bottomLeft.x;
+        newVelocity.x = -newVelocity.x;
+    }
+    if (newPosition.x >= topRight.x) {
+        newPosition.x = topRight.x;
+        newVelocity.x = -newVelocity.x;
+    }
+    if (newPosition.y <= bottomLeft.y) {
+        newPosition.y = bottomLeft.y;
+        newVelocity.y = -newVelocity.y;
+    }
+    if (newPosition.y >= topRight.y) {
+        newPosition.y = topRight.y;
+        newVelocity.y = -newVelocity.y;
+    }
 }
 
 @end

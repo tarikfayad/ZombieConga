@@ -8,17 +8,46 @@
 
 #import "tf_MyScene.h"
 
+static const float ZOMBIE_MOVE_POINTS_PER_SEC = 120.0; //The zombie should move 120 points (about 1/5th of the screen) every second
+
 @implementation tf_MyScene
 {
     SKSpriteNode *_zombie;
+    
+    CGPoint _velocity;
+    
+    NSTimeInterval _lastUpdateTime;
+    NSTimeInterval _dt;
 }
 
 -(void) update:(NSTimeInterval)currentTime
 {
-    _zombie.position = CGPointMake(_zombie.position.x + 2, _zombie.position.y); //Constant movment in the X direction as the update funciton refreshes
+    //Logging the time it takes for the update function to run.
+    if (_lastUpdateTime) {
+        _dt = currentTime - _lastUpdateTime;
+    } else {
+        _dt = 0;
+    }
+    _lastUpdateTime = currentTime;
+    NSLog(@"%0.2f milliseconds since last update", _dt * 1000);
+    
+    //Calling movement methods
+    //_zombie.position = CGPointMake(_zombie.position.x + 2, _zombie.position.y); //Constant fixed movment per frame
+    [self moveSprite:_zombie veloocity:CGPointMake(ZOMBIE_MOVE_POINTS_PER_SEC, 0)]; //Velocity multiplied by delta time (dt)
 }
 
--(id)initWithSize:(CGSize)size {    
+//Velocity multiplied by delta time (dt)
+-(void) moveSprite: (SKSpriteNode *) sprite veloocity: (CGPoint) velocity
+{
+    //Since velocity is in points per second, you need to figure out how much to move the zombie in each frame, which is done by multiplying by the fraction of seconds since last update
+    CGPoint amountToMove = CGPointMake(velocity.x * _dt, velocity.y * _dt);
+    NSLog(@"Amount to move: %@", NSStringFromCGPoint(amountToMove));
+    
+    //To determine the new position for the zombie, just add the vector to the point
+    sprite.position = CGPointMake(sprite.position.x + amountToMove.x, sprite.position.y + amountToMove.y);
+}
+
+-(id) initWithSize:(CGSize)size {
 
     if (self = [super initWithSize:size]) {
         self.backgroundColor = [SKColor whiteColor]; //Setting the inital background color to white.

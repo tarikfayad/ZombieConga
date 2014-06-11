@@ -10,4 +10,6 @@
 
 @interface tf_MyScene : SKScene
 
+-(void) moveSprite: (SKSpriteNode *) sprite veloocity: (CGPoint) velocity;
+
 @end

@@ -47,6 +47,22 @@ static const float ZOMBIE_MOVE_POINTS_PER_SEC = 120.0; //The zombie should move 
     sprite.position = CGPointMake(sprite.position.x + amountToMove.x, sprite.position.y + amountToMove.y);
 }
 
+//Make the zombie move the direction of a tap.
+- (void)moveZombieToward:(CGPoint)location
+{
+    //Calculating the offset vector between the touch location and the zombie's location
+    CGPoint offset = CGPointMake(location.x - _zombie.position.y, location.y - _zombie.position.y);
+    
+    //Calculating the offset vector length
+    CGFloat length = sqrtf(offset.x * offset.x + offset.y * offset.y);
+    
+    //Normalizing the offset vector length to ensure steady movment
+    CGPoint direction = CGPointMake(offset.x / length, offset.y / length);
+    
+    _velocity = CGPointMake(direction.x * ZOMBIE_MOVE_POINTS_PER_SEC, direction.y * ZOMBIE_MOVE_POINTS_PER_SEC);
+    
+}
+
 -(id) initWithSize:(CGSize)size {
 
     if (self = [super initWithSize:size]) {

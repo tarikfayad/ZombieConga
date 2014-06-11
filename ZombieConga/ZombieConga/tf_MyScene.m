@@ -35,6 +35,9 @@ static const float ZOMBIE_MOVE_POINTS_PER_SEC = 120.0; //The zombie should move 
     //_zombie.position = CGPointMake(_zombie.position.x + 2, _zombie.position.y); //Constant fixed movment per frame
     //[self moveSprite:_zombie veloocity:CGPointMake(ZOMBIE_MOVE_POINTS_PER_SEC, 0)]; //Velocity multiplied by delta time (dt)
     [self moveSprite:_zombie veloocity:_velocity];
+    
+    //Calling the Bounds Function
+    [self boundsCheckPlayer];
 }
 
 //Velocity multiplied by delta time (dt)
@@ -138,6 +141,10 @@ static const float ZOMBIE_MOVE_POINTS_PER_SEC = 120.0; //The zombie should move 
         newPosition.y = topRight.y;
         newVelocity.y = -newVelocity.y;
     }
+    
+    //Setting the zombie to the new position
+    _zombie.position = newPosition;
+    _velocity = newVelocity;
 }
 
 @end

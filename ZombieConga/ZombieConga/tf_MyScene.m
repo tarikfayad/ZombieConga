@@ -8,6 +8,26 @@
 
 #import "tf_MyScene.h"
 
+static inline CGFloat ScalarSign(CGFloat a)
+{
+    return a >= 0 ? 1 : -1;
+}
+
+//Returns shortest angle between two angles, between -M_PI and M_PI
+static inline CGFloat ScalarShortestAngleBetween(const CGFloat a, const CGFloat b)
+{
+    CGFloat difference = b - a;
+    CGFloat angle = fmodf(difference, M_PI * 2);
+    
+    if (angle >= M_PI) {
+        angle -= M_PI * 2;
+    } else if (angle <= -M_PI) {
+        angle += M_PI * 2;
+    }
+    
+    return angle;
+}
+
 static inline CGPoint CGPointAdd(const CGPoint a,
                                  const CGPoint b)
 {
@@ -43,6 +63,7 @@ static inline CGFloat CGPointToAngle(const CGPoint a)
 }
 
 static const float ZOMBIE_MOVE_POINTS_PER_SEC = 120.0; //The zombie should move 120 points (about 1/5th of the screen) every second
+static const float ZOMBIE_ROTATE_RADIANS_PER_SEC = 4 * M_PI;
 
 @implementation tf_MyScene
 {
@@ -75,7 +96,7 @@ static const float ZOMBIE_MOVE_POINTS_PER_SEC = 120.0; //The zombie should move 
         
         //Calling the Bounds Functionwhy a tar and not a zip
         [self boundsCheckPlayer];
-        [self rotateSprite:_zombie toFace:_velocity];
+        [self rotateSprite:_zombie toFace:_velocity rotateRadiansPerSec:ZOMBIE_ROTATE_RADIANS_PER_SEC];
     }
     
 }
@@ -186,9 +207,17 @@ static const float ZOMBIE_MOVE_POINTS_PER_SEC = 120.0; //The zombie should move 
 }
 
 //Rotate the zombie to face in the direction pointed
-- (void) rotateSprite:(SKSpriteNode *)sprite toFace:(CGPoint)direction
+- (void) rotateSprite:(SKSpriteNode *)sprite toFace:(CGPoint)velocity rotateRadiansPerSec: (CGFloat) rotateRadiansPerSec
 {
-    sprite.zRotation = CGPointToAngle(direction);
+    CGFloat targetAngle = CGPointToAngle(velocity);
+    CGFloat shortest = ScalarShortestAngleBetween(sprite.zRotation, targetAngle);
+    CGFloat amtToRotate = rotateRadiansPerSec * _dt;
+    
+    if (ABS(shortest) < amtToRotate) {
+        amtToRotate = ABS(amtToRotate);
+    } else {
+        sprite.zRotation += ScalarSign(shortest) * amtToRotate;
+    }
 }
 
 @end

@@ -13,7 +13,7 @@
 - (void) moveSprite: (SKSpriteNode *) sprite velocity: (CGPoint) velocity;
 - (void) moveZombieToward: (CGPoint) location;
 - (void) boundsCheckPlayer;
-- (void) rotateSprite: (SKSpriteNode *) sprite toFace:(CGPoint) direction;
+- (void) rotateSprite:(SKSpriteNode *)sprite toFace:(CGPoint)velocity rotateRadiansPerSec: (CGFloat) rotateRadiansPerSec;
 
 static inline CGPoint CGPointAdd(const CGPoint a, const CGPoint b);
 static inline CGPoint CGPointSubtract(const CGPoint a, const CGPoint b);
